@@ -135,7 +135,9 @@ class Command:
         if (spawn[0].endswith(".desktop") or shutil.which(spawn[0])) and not any(
             selector(client) for client in self.get_clients()
         ):
-            hypr.dispatch("exec", f"[workspace special:{self.args.workspace}] {shlex.join(spawn)}")
+            # Hyprland Lua: exec_cmd não aceita prefixo [workspace …] do hyprlang legado.
+            # Window rules / move cuidam do special workspace.
+            hypr.dispatch("exec", shlex.join(spawn))
             return True
         else:
             return False

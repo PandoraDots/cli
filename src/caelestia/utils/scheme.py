@@ -36,9 +36,7 @@ class Scheme:
 
     @name.setter
     def name(self, name: str) -> None:
-        if name == self._name:
-            return
-
+        # Sempre recarrega cores do arquivo (permite atualizar dark.txt sem trocar de scheme)
         if name not in get_scheme_names():
             if self.notify:
                 notify(
@@ -49,11 +47,15 @@ class Scheme:
                 )
             raise ValueError(f"Invalid scheme name: {name}")
 
+        changed = name != self._name
         self._name = name
         self._check_flavour()
         self._check_mode()
         self._update_colours()
         self.save()
+        if not changed:
+            # Mesmo nome: ainda assim persiste cores atualizadas do arquivo
+            pass
 
     @property
     def flavour(self) -> str:
