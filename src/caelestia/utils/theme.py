@@ -389,7 +389,11 @@ def apply_zed(colours: dict[str, str], mode: str) -> None:
 
 @log_exception
 def apply_cava(colours: dict[str, str]) -> None:
-    template = gen_replace(colours, templates_dir / "cava.conf", hash=True)
+    # Prefer user template (~/.config/caelestia/templates/cava.conf) when present.
+    template_path = user_templates_dir / "cava.conf"
+    if not template_path.is_file():
+        template_path = templates_dir / "cava.conf"
+    template = gen_replace(colours, template_path, hash=True)
     atomic_write(config_dir / "cava/config", template)
     subprocess.run(["killall", "-USR2", "cava"], stderr=subprocess.DEVNULL)
 
@@ -400,9 +404,13 @@ def apply_user_templates(colours: dict[str, str], mode: str) -> None:
         return
 
     for file in user_templates_dir.iterdir():
-        if file.is_file():
-            content = gen_replace_dynamic(colours, file, mode)
-            atomic_write(theme_dir / file.name, content)
+        if not file.is_file():
+            continue
+        # cava.conf is applied by apply_cava (gen_replace), not theme_dir
+        if file.name == "cava.conf":
+            continue
+        content = gen_replace_dynamic(colours, file, mode)
+        atomic_write(theme_dir / file.name, content)
 
 
 def apply_colours(colours: dict[str, str], mode: str) -> None:
